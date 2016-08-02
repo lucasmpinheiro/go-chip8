@@ -32,6 +32,25 @@ func (chip8 *Chip8) EmulateCycle() {
 	// Update timers.
 }
 
+// LoadGame loads the program stored on a file to the memory.
+func (chip8 *Chip8) LoadGame(filename string) {
+	// Read file data.
+	data, err := ioutil.ReadFile(filename)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Load program into memory.
+	for i, value := range data {
+		if i+0x200 < 0x1000 {
+			chip8.memory[i+0x200] = value
+		} else {
+			log.Fatal("Error: end of memory.")
+		}
+	}
+}
+
 var chip8Fontset [80]uint8 = [80]uint8{
 	0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 	0x20, 0x60, 0x20, 0x20, 0x70, // 1
