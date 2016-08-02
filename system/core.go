@@ -1,4 +1,8 @@
-package chip8
+package core
+
+import (
+	"io/ioutil"
+)
 
 // Chip8 defines the system's main struct.
 type Chip8 struct {
@@ -21,6 +25,36 @@ type Chip8 struct {
 
 // Initialize sets up memory and registers.
 func (chip8 *Chip8) Initialize() {
+	chip8.pc = 0x200 // Program counter starts at 0x200
+	chip8.opcode = 0 // Reset current opcode
+	chip8.I = 0      // Reset index register
+	chip8.sp = 0     // Reset stack pointer
+
+	// TODO: Clear display.
+
+	// Clear stack.
+	for i := range chip8.stack {
+		chip8.stack[i] = 0
+	}
+
+	// Clear registers V0-VF.
+	for i := range chip8.V {
+		chip8.V[i] = 0
+	}
+
+	// Clear memory.
+	for i := range chip8.memory {
+		chip8.memory[i] = 0
+	}
+
+	// Load fontset.
+	for i, font := range chip8Fontset {
+		chip8.memory[i] = font
+	}
+
+	// Reset timers.
+	chip8.delayTimer = 0
+	chip8.soundTimer = 0
 }
 
 // EmulateCycle executes all operations required during a cycle.
