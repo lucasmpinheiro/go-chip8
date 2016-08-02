@@ -61,10 +61,23 @@ func (chip8 *Chip8) Initialize() {
 // EmulateCycle executes all operations required during a cycle.
 func (chip8 *Chip8) EmulateCycle() {
 	// Fetch opcode.
+	chip8.opcode = uint16(chip8.memory[chip8.pc])<<8 | uint16(chip8.memory[chip8.pc+1])
+
 	// Decode opcode.
-	// Execute opcode.
+	chip8.DecodeOpcode()
 
 	// Update timers.
+	if chip8.delayTimer > 0 {
+		chip8.delayTimer--
+	}
+
+	if chip8.soundTimer > 0 {
+		if chip8.soundTimer == 1 {
+			log.Println("BEEP!")
+		}
+		chip8.soundTimer--
+	}
+}
 
 // DecodeOpcode decodes the current opcode and performs the right operation.
 func (chip8 *Chip8) DecodeOpcode() {
