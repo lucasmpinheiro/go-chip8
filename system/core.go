@@ -32,7 +32,10 @@ func (chip8 *Chip8) Initialize() {
 	chip8.I = 0      // Reset index register.
 	chip8.sp = 0     // Reset stack pointer.
 
-	// TODO: Clear display.
+	// Clear display.
+	for i := range chip8.gfx {
+		chip8.gfx[i] = 0
+	}
 
 	// Clear stack.
 	for i := range chip8.stack {
