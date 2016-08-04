@@ -8,8 +8,7 @@ It's largely based on the [tutorial by Laurance Muller](http://www.multigesture.
 
 ### Opcodes
 - [ ] 0x0000
-    - [ ] 0x0NNN
-    - [ ] 0x00E0
+    - [x] 0x00E0
     - [ ] 0x00EE
 - [x] 0x1NNN
 - [x] 0x2NNN
@@ -23,7 +22,7 @@ It's largely based on the [tutorial by Laurance Muller](http://www.multigesture.
     - [ ] 0x8XY1
     - [ ] 0x8XY2
     - [ ] 0x8XY3
-    - [ ] 0x8XY4
+    - [x] 0x8XY4
     - [ ] 0x8XY5
     - [ ] 0x8XY6
     - [ ] 0x8XY7
@@ -32,7 +31,7 @@ It's largely based on the [tutorial by Laurance Muller](http://www.multigesture.
 - [x] 0xANNN
 - [x] 0xBNNN
 - [ ] 0xCXNN
-- [ ] 0xDXYN
+- [x] 0xDXYN
 - [ ] 0xE000
     - [ ] 0xEX9E
     - [ ] 0xEXA1
@@ -42,7 +41,7 @@ It's largely based on the [tutorial by Laurance Muller](http://www.multigesture.
     - [x] 0xFX15
     - [x] 0xFX18
     - [x] 0xFX1E
-    - [ ] 0xFX29
-    - [ ] 0xFX33
+    - [x] 0xFX29
+    - [x] 0xFX33
     - [x] 0xFX55
     - [x] 0xFX65

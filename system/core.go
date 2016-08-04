@@ -9,27 +9,28 @@ import (
 type Chip8 struct {
 	opcode uint16
 	memory [0x1000]uint8 // 4kb
-	V      [0x10]uint8   // 16 registers
-	I      uint16        // Index register
-	pc     uint16        // Program counter
+	V      [0x10]uint8   // 16 registers.
+	I      uint16        // Index register.
+	pc     uint16        // Program counter.
 
-	gfx [64 * 32]bool // 64x32 display
+	gfx      [64 * 32]uint8 // 64x32 display.
+	drawFlag bool           // Indicates if the display should be redrawn or not.
 
 	delayTimer uint8
 	soundTimer uint8
 
-	stack [0x10]uint16 // Memory stack
-	sp    uint8        // Stack pointer
+	stack [0x10]uint16 // Memory stack.
+	sp    uint8        // Stack pointer.
 
-	key [0x10]bool // Key state array
+	key [0x10]bool // Key state array.
 }
 
 // Initialize sets up memory and registers.
 func (chip8 *Chip8) Initialize() {
-	chip8.pc = 0x200 // Program counter starts at 0x200
-	chip8.opcode = 0 // Reset current opcode
-	chip8.I = 0      // Reset index register
-	chip8.sp = 0     // Reset stack pointer
+	chip8.pc = 0x200 // Program counter starts at 0x200.
+	chip8.opcode = 0 // Reset current opcode.
+	chip8.I = 0      // Reset index register.
+	chip8.sp = 0     // Reset stack pointer.
 
 	// TODO: Clear display.
 
@@ -82,11 +83,16 @@ func (chip8 *Chip8) EmulateCycle() {
 // DecodeOpcode decodes the current opcode and performs the right operation.
 func (chip8 *Chip8) DecodeOpcode() {
 	switch chip8.opcode & 0xF000 {
-
 	case 0x0000:
 		switch chip8.opcode & 0x0FFF {
 		case 0x00E0: // 0x00E0: Clears the screen.
-			// TODO: implement this
+			for i := range chip8.gfx {
+				chip8.gfx[i] = 0
+			}
+
+			chip8.drawFlag = true
+			chip8.pc += 2
+
 		case 0x00EE: // 0x00EE: Returns from a subroutine
 			// TODO: implement this
 		default:
@@ -142,7 +148,17 @@ func (chip8 *Chip8) DecodeOpcode() {
 		case 0x0001:
 		case 0x0002:
 		case 0x0003:
-		case 0x0004:
+		case 0x0004: // 0x8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.
+			x := (chip8.opcode & 0x0F00) >> 8
+			y := (chip8.opcode & 0x00F0) >> 4
+			if chip8.V[x]+chip8.V[y] > 0xFF {
+				chip8.V[0xF] = 1 // carry
+			} else {
+				chip8.V[0xF] = 0
+			}
+			chip8.V[x] += chip8.V[y]
+			chip8.pc += 2
+
 		case 0x0005:
 		case 0x0006:
 		case 0x0007:
@@ -169,7 +185,36 @@ func (chip8 *Chip8) DecodeOpcode() {
 
 	case 0xC000:
 
-	case 0xD000:
+	case 0xD000: // 0xDXYN: Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels. Each row of 8 pixels is read as bit-coded starting from memory location I; I value doesn’t change after the execution of this instruction. As described above, VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn, and to 0 if that doesn’t happen.
+		x := (chip8.opcode & 0x0F00) >> 8
+		y := (chip8.opcode & 0x00F0) >> 4
+		n := chip8.opcode & 0x000F // == sprite height
+
+		var pixels uint8 // Stores a sprite line.
+
+		chip8.V[0xF] = 0 // Reset VF.
+
+		for row := uint16(0); row < n; row++ { // Loop through the sprite rows.
+			pixels = chip8.memory[chip8.I+row] // Fetch sprite line from memory.
+
+			for col := uint16(0); col < 8; col++ { // Loop through the sprite columns.
+				// Check if the current evaluated pixel is set to 1.
+				if (pixels & (0x80 >> col)) != 0 {
+					pixelIdx := x + col + ((y + row) * 64) // Get the pixel index.
+
+					// Check if the pixel on the display is set to 1.
+					if chip8.gfx[pixelIdx] == 1 {
+						// If so, set VF.
+						chip8.V[0xF] = 1
+					}
+
+					chip8.gfx[pixelIdx] ^= 1 // Update the pixel.
+				}
+			}
+		}
+
+		chip8.drawFlag = true
+		chip8.pc += 2
 
 	case 0xE000:
 		switch chip8.opcode & 0x00FF {
@@ -204,8 +249,18 @@ func (chip8 *Chip8) DecodeOpcode() {
 			}
 			chip8.I += uint16(chip8.V[x])
 			chip8.pc += 2
-		case 0x0029:
-		case 0x0033:
+
+		case 0x0029: // 0xFX29: Sets I to the location of the sprite for the character in VX. Characters 0-F (in hexadecimal) are represented by a 4x5 font.
+			x := (chip8.opcode & 0x0F00) >> 8
+			chip8.I = uint16(chip8.V[x] * 0x5)
+			chip8.pc += 2
+
+		case 0x0033: // 0xFX33: Stores the binary-coded decimal representation of VX, with the most significant of three digits at the address in I, the middle digit at I plus 1, and the least significant digit at I plus 2. (In other words, take the decimal representation of VX, place the hundreds digit in memory at location in I, the tens digit at location I+1, and the ones digit at location I+2.)
+			x := (chip8.opcode & 0x0F00) >> 8
+			chip8.memory[chip8.I] = chip8.V[x] / 100
+			chip8.memory[chip8.I+1] = (chip8.V[x] / 10) % 10
+			chip8.memory[chip8.I+2] = chip8.V[x] % 10
+			chip8.pc += 2
 		case 0x0055: // 0xFX55: Stores V0 to VX (including VX) in memory starting at address I.
 			x := (chip8.opcode & 0x0F00) >> 8
 			if chip8.I+x > uint16(len(chip8.memory)) {
