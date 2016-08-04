@@ -168,10 +168,34 @@ func (chip8 *Chip8) DecodeOpcode() {
 
 	case 0x8000:
 		switch chip8.opcode & 0x000F {
+
+		// 8XY0: Sets VX to the value of VY.
 		case 0x0000:
+			x := (chip8.opcode & 0x0F00) >> 8
+			y := (chip8.opcode & 0x00F0) >> 4
+			chip8.V[x] = chip8.V[y]
+			chip8.pc += 2
+
+		// 8XY1: Sets VX to VX or VY.
 		case 0x0001:
+			x := (chip8.opcode & 0x0F00) >> 8
+			y := (chip8.opcode & 0x00F0) >> 4
+			chip8.V[x] |= chip8.V[y]
+			chip8.pc += 2
+
+		// 8XY2: Sets VX to VX and VY.
 		case 0x0002:
+			x := (chip8.opcode & 0x0F00) >> 8
+			y := (chip8.opcode & 0x00F0) >> 4
+			chip8.V[x] &= chip8.V[y]
+			chip8.pc += 2
+
+		// 8XY3: Sets VX to VX xor VY.
 		case 0x0003:
+			x := (chip8.opcode & 0x0F00) >> 8
+			y := (chip8.opcode & 0x00F0) >> 4
+			chip8.V[x] ^= chip8.V[y]
+			chip8.pc += 2
 
 		// 8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.
 		case 0x0004:
@@ -185,10 +209,52 @@ func (chip8 *Chip8) DecodeOpcode() {
 			chip8.V[x] += chip8.V[y]
 			chip8.pc += 2
 
+		// 8XY5: VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
 		case 0x0005:
+			x := (chip8.opcode & 0x0F00) >> 8
+			y := (chip8.opcode & 0x00F0) >> 4
+
+			// Check if there is a borrow.
+			if chip8.V[y] > chip8.V[x] {
+				chip8.V[0xF] = 0
+			} else {
+				chip8.V[0xF] = 1
+			}
+
+			chip8.V[x] -= chip8.V[y]
+
+			chip8.pc += 2
+
+		// 8XY6: Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift.[2]
 		case 0x0006:
+			x := (chip8.opcode & 0x0F00) >> 8
+			chip8.V[0xF] = chip8.V[x] & 0x1
+			chip8.V[x] >>= 1
+			chip8.pc += 2
+
+		// 8XY7: Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
 		case 0x0007:
+			x := (chip8.opcode & 0x0F00) >> 8
+			y := (chip8.opcode & 0x00F0) >> 4
+
+			// Check if there is a borrow.
+			if chip8.V[x] > chip8.V[y] {
+				chip8.V[0xF] = 0
+			} else {
+				chip8.V[0xF] = 1
+			}
+
+			chip8.V[x] = chip8.V[y] - chip8.V[x]
+
+			chip8.pc += 2
+
+		// 8XYE: Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift.[2]
 		case 0x000E:
+			x := (chip8.opcode & 0x0F00) >> 8
+			chip8.V[0xF] = chip8.V[x] >> 7
+			chip8.V[x] <<= 1
+			chip8.pc += 2
+
 		default:
 			log.Fatalln("Unknown opcode [0x8000]: %X", chip8.opcode)
 		}
