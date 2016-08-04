@@ -102,7 +102,7 @@ func (chip8 *Chip8) DecodeOpcode() {
 		chip8.pc = chip8.opcode & 0x0FFF
 
 	case 0x3000: // 0x3XNN: Skips the next instruction if VX equals NN.
-		x := (chip8.opcode & 0x0F00) / 100
+		x := (chip8.opcode & 0x0F00) >> 8
 		if chip8.V[x] == uint8(chip8.opcode&0x00FF) {
 			chip8.pc += 4
 		} else {
@@ -110,7 +110,7 @@ func (chip8 *Chip8) DecodeOpcode() {
 		}
 
 	case 0x4000: // 0x4XNN: Skips the next instruction if VX doesn't equal NN.
-		x := (chip8.opcode & 0x0F00) / 100
+		x := (chip8.opcode & 0x0F00) >> 8
 		if chip8.V[x] != uint8(chip8.opcode&0x00FF) {
 			chip8.pc += 4
 		} else {
@@ -118,8 +118,8 @@ func (chip8 *Chip8) DecodeOpcode() {
 		}
 
 	case 0x5000: // 0x5XY0: Skips the next instruction if VX equals VY.
-		x := (chip8.opcode & 0x0F00) / 100
-		y := (chip8.opcode & 0x00F0) / 10
+		x := (chip8.opcode & 0x0F00) >> 8
+		y := (chip8.opcode & 0x00F0) >> 4
 		if chip8.V[x] == chip8.V[y] {
 			chip8.pc += 4
 		} else {
@@ -127,12 +127,12 @@ func (chip8 *Chip8) DecodeOpcode() {
 		}
 
 	case 0x6000: // 0x6XNN:	Sets VX to NN.
-		x := (chip8.opcode & 0x0F00) / 100
+		x := (chip8.opcode & 0x0F00) >> 8
 		chip8.V[x] = uint8(chip8.opcode & 0x00FF)
 		chip8.pc += 2
 
 	case 0x7000: // 0x7XNN:	Adds NN to VX.
-		x := (chip8.opcode & 0x0F00) / 100
+		x := (chip8.opcode & 0x0F00) >> 8
 		chip8.V[x] += uint8(chip8.opcode & 0x00FF)
 		chip8.pc += 2
 
@@ -152,8 +152,8 @@ func (chip8 *Chip8) DecodeOpcode() {
 		}
 
 	case 0x9000: // 0x9XY0: Skips the next instruction if VX doesn't equal VY.
-		x := (chip8.opcode & 0x0F00) / 100
-		y := (chip8.opcode & 0x00F0) / 10
+		x := (chip8.opcode & 0x0F00) >> 8
+		y := (chip8.opcode & 0x00F0) >> 4
 		if chip8.V[x] != chip8.V[y] {
 			chip8.pc += 4
 		} else {
@@ -182,21 +182,21 @@ func (chip8 *Chip8) DecodeOpcode() {
 	case 0xF000:
 		switch chip8.opcode & 0x00FF {
 		case 0x0007: // 0xFX07: Sets VX to the value of the delay timer.
-			x := (chip8.opcode & 0x0F00) / 100
+			x := (chip8.opcode & 0x0F00) >> 8
 			chip8.V[x] = chip8.delayTimer
 			chip8.pc += 2
 
 		case 0x000A:
 		case 0x0015: // 0xFX15: Sets the delay timer to VX.
-			x := (chip8.opcode & 0x0F00) / 100
+			x := (chip8.opcode & 0x0F00) >> 8
 			chip8.delayTimer = chip8.V[x]
 			chip8.pc += 2
 		case 0x0018: // 0xFX15: Sets the sound timer to VX.
-			x := (chip8.opcode & 0x0F00) / 100
+			x := (chip8.opcode & 0x0F00) >> 8
 			chip8.soundTimer = chip8.V[x]
 			chip8.pc += 2
 		case 0x001E: // 0xFX1E: Adds VX to I.
-			x := (chip8.opcode & 0x0F00) / 100
+			x := (chip8.opcode & 0x0F00) >> 8
 			if chip8.I+uint16(chip8.V[x]) > 0xFFF { // Check for range overflow.
 				chip8.V[0xF] = 1
 			} else {
@@ -207,7 +207,7 @@ func (chip8 *Chip8) DecodeOpcode() {
 		case 0x0029:
 		case 0x0033:
 		case 0x0055: // 0xFX55: Stores V0 to VX (including VX) in memory starting at address I.
-			x := (chip8.opcode & 0x0F00) / 100
+			x := (chip8.opcode & 0x0F00) >> 8
 			if chip8.I+x > uint16(len(chip8.memory)) {
 				log.Fatal("Error: end of memory.")
 			} else {
@@ -217,7 +217,7 @@ func (chip8 *Chip8) DecodeOpcode() {
 			}
 
 		case 0x0065: // 0xFX65: Fills V0 to VX (including VX) with values from memory starting at address I.
-			x := (chip8.opcode & 0x0F00) / 100
+			x := (chip8.opcode & 0x0F00) >> 8
 			if chip8.I+x > uint16(len(chip8.memory)) {
 				log.Fatal("Error: end of memory.")
 			} else {
