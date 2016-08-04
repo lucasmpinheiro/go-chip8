@@ -3,6 +3,8 @@ package core
 import (
 	"io/ioutil"
 	"log"
+	"math/rand"
+	"time"
 )
 
 // Chip8 defines the system's main struct.
@@ -23,6 +25,8 @@ type Chip8 struct {
 	sp    uint8        // Stack pointer.
 
 	key [0x10]bool // Key state array.
+
+	randomGen *rand.Rand // Random numbers generator.
 }
 
 // Initialize sets up memory and registers.
@@ -31,6 +35,10 @@ func (chip8 *Chip8) Initialize() {
 	chip8.opcode = 0 // Reset current opcode.
 	chip8.I = 0      // Reset index register.
 	chip8.sp = 0     // Reset stack pointer.
+
+	// Create random number generator.
+	seed := rand.NewSource(time.Now().UnixNano())
+	chip8.randomGen = rand.New(seed)
 
 	// Clear display.
 	for i := range chip8.gfx {
@@ -101,7 +109,9 @@ func (chip8 *Chip8) DecodeOpcode() {
 
 		// 00EE: Returns from a subroutine
 		case 0x00EE:
-			// TODO: implement this
+			chip8.sp--
+			chip8.pc = chip8.stack[chip8.sp] + 2
+
 		default:
 			log.Fatalln("Unknown opcode [0x0000]: %X", chip8.opcode)
 		}
@@ -202,7 +212,11 @@ func (chip8 *Chip8) DecodeOpcode() {
 	case 0xB000:
 		chip8.pc = (chip8.opcode & 0x0FFF) + uint16(chip8.V[0])
 
+	// CXNN: Sets VX to the result of a bitwise and operation on a random number and NN.
 	case 0xC000:
+		x := (chip8.opcode & 0x0F00) >> 8
+		n := uint8(chip8.opcode & 0x00FF)
+		chip8.V[x] = uint8(chip8.randomGen.Intn(0x100)) & n
 
 	// DXYN: Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels. Each row of 8 pixels is read as bit-coded starting from memory location I; I value doesn’t change after the execution of this instruction. As described above, VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn, and to 0 if that doesn’t happen.
 	case 0xD000:
@@ -238,8 +252,25 @@ func (chip8 *Chip8) DecodeOpcode() {
 
 	case 0xE000:
 		switch chip8.opcode & 0x00FF {
+
+		// EX9E: Skips the next instruction if the key stored in VX is pressed
 		case 0x009E:
+			x := (chip8.opcode & 0x0F00) >> 8
+			if chip8.key[chip8.V[x]] {
+				chip8.pc += 4
+			} else {
+				chip8.pc += 2
+			}
+
+		// EXA1: Skips the next instruction if the key stored in VX isn't pressed.
 		case 0x00A1:
+			x := (chip8.opcode & 0x0F00) >> 8
+			if !chip8.key[chip8.V[x]] {
+				chip8.pc += 4
+			} else {
+				chip8.pc += 2
+			}
+
 		default:
 			log.Fatalln("Unknown opcode [0xE000]: %X", chip8.opcode)
 		}
@@ -253,7 +284,24 @@ func (chip8 *Chip8) DecodeOpcode() {
 			chip8.V[x] = chip8.delayTimer
 			chip8.pc += 2
 
+		// FX0A: A key press is awaited, and then stored in VX.
 		case 0x000A:
+			x := (chip8.opcode & 0x0F00) >> 8
+			keyPressed := false
+
+			for i := range chip8.key {
+				if chip8.key[i] {
+					chip8.V[x] = uint8(i)
+					keyPressed = true
+				}
+			}
+
+			// If no key was pressed, end this cycle and run it again.
+			if !keyPressed {
+				return
+			}
+
+			chip8.pc += 2
 
 		// FX15: Sets the delay timer to VX.
 		case 0x0015:

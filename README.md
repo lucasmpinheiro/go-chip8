@@ -7,9 +7,9 @@ It's largely based on the [tutorial by Laurance Muller](http://www.multigesture.
 ## TODO
 
 ### Opcodes
-- [ ] 0x0000
+- [x] 0x0000
     - [x] 0x00E0
-    - [ ] 0x00EE
+    - [x] 0x00EE
 - [x] 0x1NNN
 - [x] 0x2NNN
 - [x] 0x3XNN
@@ -30,14 +30,14 @@ It's largely based on the [tutorial by Laurance Muller](http://www.multigesture.
 - [x] 0x9XY0
 - [x] 0xANNN
 - [x] 0xBNNN
-- [ ] 0xCXNN
+- [x] 0xCXNN
 - [x] 0xDXYN
-- [ ] 0xE000
-    - [ ] 0xEX9E
-    - [ ] 0xEXA1
-- [ ] 0xF000:
+- [x] 0xE000
+    - [x] 0xEX9E
+    - [x] 0xEXA1
+- [x] 0xF000:
     - [x] 0xFX07
-    - [ ] 0xFX0A
+    - [x] 0xFX0A
     - [x] 0xFX15
     - [x] 0xFX18
     - [x] 0xFX1E
