@@ -87,7 +87,7 @@ func (chip8 *Chip8) DecodeOpcode() {
 	case 0x0000:
 		switch chip8.opcode & 0x0FFF {
 
-		// 0x00E0: Clears the screen.
+		// 00E0: Clears the screen.
 		case 0x00E0:
 			for i := range chip8.gfx {
 				chip8.gfx[i] = 0
@@ -96,24 +96,24 @@ func (chip8 *Chip8) DecodeOpcode() {
 			chip8.drawFlag = true
 			chip8.pc += 2
 
-		// 0x00EE: Returns from a subroutine
+		// 00EE: Returns from a subroutine
 		case 0x00EE:
 			// TODO: implement this
 		default:
 			log.Fatalln("Unknown opcode [0x0000]: %X", chip8.opcode)
 		}
 
-	// 0x1NNN: Jumps to address NNN.
+	// 1NNN: Jumps to address NNN.
 	case 0x1000:
 		chip8.pc = chip8.opcode & 0x0FFF
 
-	// 0x2NNN: Calls subroutine at NNN.
+	// 2NNN: Calls subroutine at NNN.
 	case 0x2000:
 		chip8.stack[chip8.sp] = chip8.pc
 		chip8.sp++
 		chip8.pc = chip8.opcode & 0x0FFF
 
-	// 0x3XNN: Skips the next instruction if VX equals NN.
+	// 3XNN: Skips the next instruction if VX equals NN.
 	case 0x3000:
 		x := (chip8.opcode & 0x0F00) >> 8
 		if chip8.V[x] == uint8(chip8.opcode&0x00FF) {
@@ -122,7 +122,7 @@ func (chip8 *Chip8) DecodeOpcode() {
 			chip8.pc += 2
 		}
 
-	// 0x4XNN: Skips the next instruction if VX doesn't equal NN.
+	// 4XNN: Skips the next instruction if VX doesn't equal NN.
 	case 0x4000:
 		x := (chip8.opcode & 0x0F00) >> 8
 		if chip8.V[x] != uint8(chip8.opcode&0x00FF) {
@@ -131,7 +131,7 @@ func (chip8 *Chip8) DecodeOpcode() {
 			chip8.pc += 2
 		}
 
-	// 0x5XY0: Skips the next instruction if VX equals VY.
+	// 5XY0: Skips the next instruction if VX equals VY.
 	case 0x5000:
 		x := (chip8.opcode & 0x0F00) >> 8
 		y := (chip8.opcode & 0x00F0) >> 4
@@ -141,13 +141,13 @@ func (chip8 *Chip8) DecodeOpcode() {
 			chip8.pc += 2
 		}
 
-	// 0x6XNN:	Sets VX to NN.
+	// 6XNN:	Sets VX to NN.
 	case 0x6000:
 		x := (chip8.opcode & 0x0F00) >> 8
 		chip8.V[x] = uint8(chip8.opcode & 0x00FF)
 		chip8.pc += 2
 
-	// 0x7XNN:	Adds NN to VX.
+	// 7XNN:	Adds NN to VX.
 	case 0x7000:
 		x := (chip8.opcode & 0x0F00) >> 8
 		chip8.V[x] += uint8(chip8.opcode & 0x00FF)
@@ -160,7 +160,7 @@ func (chip8 *Chip8) DecodeOpcode() {
 		case 0x0002:
 		case 0x0003:
 
-		// 0x8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.
+		// 8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.
 		case 0x0004:
 			x := (chip8.opcode & 0x0F00) >> 8
 			y := (chip8.opcode & 0x00F0) >> 4
@@ -180,7 +180,7 @@ func (chip8 *Chip8) DecodeOpcode() {
 			log.Fatalln("Unknown opcode [0x8000]: %X", chip8.opcode)
 		}
 
-	// 0x9XY0: Skips the next instruction if VX doesn't equal VY.
+	// 9XY0: Skips the next instruction if VX doesn't equal VY.
 	case 0x9000:
 		x := (chip8.opcode & 0x0F00) >> 8
 		y := (chip8.opcode & 0x00F0) >> 4
@@ -195,13 +195,13 @@ func (chip8 *Chip8) DecodeOpcode() {
 		chip8.I = chip8.opcode & 0x0FFF
 		chip8.pc += 2
 
-	// 0xBNNN: Jumps to the address NNN plus V0.
+	// BNNN: Jumps to the address NNN plus V0.
 	case 0xB000:
 		chip8.pc = (chip8.opcode & 0x0FFF) + uint16(chip8.V[0])
 
 	case 0xC000:
 
-	// 0xDXYN: Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels. Each row of 8 pixels is read as bit-coded starting from memory location I; I value doesn’t change after the execution of this instruction. As described above, VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn, and to 0 if that doesn’t happen.
+	// DXYN: Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels. Each row of 8 pixels is read as bit-coded starting from memory location I; I value doesn’t change after the execution of this instruction. As described above, VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn, and to 0 if that doesn’t happen.
 	case 0xD000:
 		x := (chip8.opcode & 0x0F00) >> 8
 		y := (chip8.opcode & 0x00F0) >> 4
@@ -244,7 +244,7 @@ func (chip8 *Chip8) DecodeOpcode() {
 	case 0xF000:
 		switch chip8.opcode & 0x00FF {
 
-		// 0xFX07: Sets VX to the value of the delay timer.
+		// FX07: Sets VX to the value of the delay timer.
 		case 0x0007:
 			x := (chip8.opcode & 0x0F00) >> 8
 			chip8.V[x] = chip8.delayTimer
@@ -252,19 +252,19 @@ func (chip8 *Chip8) DecodeOpcode() {
 
 		case 0x000A:
 
-		// 0xFX15: Sets the delay timer to VX.
+		// FX15: Sets the delay timer to VX.
 		case 0x0015:
 			x := (chip8.opcode & 0x0F00) >> 8
 			chip8.delayTimer = chip8.V[x]
 			chip8.pc += 2
 
-		// 0xFX15: Sets the sound timer to VX.
+		// FX15: Sets the sound timer to VX.
 		case 0x0018:
 			x := (chip8.opcode & 0x0F00) >> 8
 			chip8.soundTimer = chip8.V[x]
 			chip8.pc += 2
 
-		// 0xFX1E: Adds VX to I.
+		// FX1E: Adds VX to I.
 		case 0x001E:
 			x := (chip8.opcode & 0x0F00) >> 8
 			if chip8.I+uint16(chip8.V[x]) > 0xFFF { // Check for range overflow.
@@ -275,13 +275,13 @@ func (chip8 *Chip8) DecodeOpcode() {
 			chip8.I += uint16(chip8.V[x])
 			chip8.pc += 2
 
-		// 0xFX29: Sets I to the location of the sprite for the character in VX. Characters 0-F (in hexadecimal) are represented by a 4x5 font.
+		// FX29: Sets I to the location of the sprite for the character in VX. Characters 0-F (in hexadecimal) are represented by a 4x5 font.
 		case 0x0029:
 			x := (chip8.opcode & 0x0F00) >> 8
 			chip8.I = uint16(chip8.V[x] * 0x5)
 			chip8.pc += 2
 
-		// 0xFX33: Stores the binary-coded decimal representation of VX, with the most significant of three digits at the address in I, the middle digit at I plus 1, and the least significant digit at I plus 2. (In other words, take the decimal representation of VX, place the hundreds digit in memory at location in I, the tens digit at location I+1, and the ones digit at location I+2.)
+		// FX33: Stores the binary-coded decimal representation of VX, with the most significant of three digits at the address in I, the middle digit at I plus 1, and the least significant digit at I plus 2. (In other words, take the decimal representation of VX, place the hundreds digit in memory at location in I, the tens digit at location I+1, and the ones digit at location I+2.)
 		case 0x0033:
 			x := (chip8.opcode & 0x0F00) >> 8
 			chip8.memory[chip8.I] = chip8.V[x] / 100
@@ -289,7 +289,7 @@ func (chip8 *Chip8) DecodeOpcode() {
 			chip8.memory[chip8.I+2] = chip8.V[x] % 10
 			chip8.pc += 2
 
-		// 0xFX55: Stores V0 to VX (including VX) in memory starting at address I.
+		// FX55: Stores V0 to VX (including VX) in memory starting at address I.
 		case 0x0055:
 			x := (chip8.opcode & 0x0F00) >> 8
 			if chip8.I+x > uint16(len(chip8.memory)) {
@@ -300,7 +300,7 @@ func (chip8 *Chip8) DecodeOpcode() {
 				}
 			}
 
-		// 0xFX65: Fills V0 to VX (including VX) with values from memory starting at address I.
+		// FX65: Fills V0 to VX (including VX) with values from memory starting at address I.
 		case 0x0065:
 			x := (chip8.opcode & 0x0F00) >> 8
 			if chip8.I+x > uint16(len(chip8.memory)) {
