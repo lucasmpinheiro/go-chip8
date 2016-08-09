@@ -1,4 +1,4 @@
-package core
+package system
 
 import (
 	"io/ioutil"
@@ -27,6 +27,11 @@ type Chip8 struct {
 	key [0x10]bool // Key state array.
 
 	randomGen *rand.Rand // Random numbers generator.
+}
+
+// DrawFlag returns true if the screen should be drawn again.
+func (chip8 *Chip8) DrawFlag() bool {
+	return chip8.drawFlag
 }
 
 // Initialize sets up memory and registers.
